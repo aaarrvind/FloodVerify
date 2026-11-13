@@ -1,0 +1,14 @@
+torch
+segmentation-models-pytorch
+transformers
+peft
+datasets
+faiss-cpu
+camel-tools
+gradio
+numpy
+pandas
+pillow
+jsonschema
+pytest
+ruff

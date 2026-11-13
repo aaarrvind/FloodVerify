@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TileEvidence",
+  "type": "object",
+  "required": ["tile_id", "source", "gsd_m", "grid", "cells"],
+  "properties": {
+    "tile_id": {"type": "string"},
+    "source": {"enum": ["labels", "predicted"]},
+    "gsd_m": {"type": "number"},
+    "grid": {"const": "3x3"},
+    "cells": {
+      "type": "array", "minItems": 9, "maxItems": 9,
+      "items": {
+        "type": "object",
+        "required": ["cell", "buildings", "class_fraction", "confidence"],
+        "properties": {
+          "cell": {"type": "string", "pattern": "^r[0-2]c[0-2]$"},
+          "buildings": {"type": "integer", "minimum": 0},
+          "class_fraction": {
+            "type": "object",
+            "required": ["none", "minor", "major", "destroyed"],
+            "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
+          },
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    }
+  }
+}

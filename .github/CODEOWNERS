@@ -1,0 +1,19 @@
+# Replace @memberN with real GitHub handles.
+*                                   @member1
+/src/floodsitrep/common/            @member1
+/src/floodsitrep/data/              @member1
+/src/floodsitrep/pipeline/          @member1
+/evidence/                          @member1
+/docs/                              @member1
+/reports/paper/                     @member1
+/src/floodsitrep/cv/models/         @member2
+/src/floodsitrep/cv/train.py        @member2
+/configs/cv/                        @member2
+/src/floodsitrep/cv/eval/           @member3
+/src/floodsitrep/cv/export_evidence.py @member3
+/reports/cv/                        @member3
+/src/floodsitrep/nlp/               @member4
+/configs/nlp/                       @member4
+/src/floodsitrep/advisory/          @member5
+/demo/                              @member5
+/reports/nlp/                       @member5

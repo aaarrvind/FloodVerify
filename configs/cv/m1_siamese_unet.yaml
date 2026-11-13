@@ -1,0 +1,5 @@
+model: siamese_unet
+encoder: resnet34
+loss: dice_focal
+seed: 0
+tile_size: 512
