@@ -12,3 +12,7 @@ List of atomic claims with a verdict: `supported`, `contradicted` or `not_verifi
 
 ## Changing the contract
 Open a PR touching `common/` or the schema, tag all five members, merge only with member 1's approval.
+
+## Evidence rules (added 14 Nov)
+- Cells with no buildings have all-zero class fractions.
+- `valid_fraction` is the share of the cell with real imagery. Below 0.5 the cell has no usable imagery, and the checker must return `not_verifiable` for any claim about it.

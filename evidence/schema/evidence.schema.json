@@ -21,7 +21,8 @@
             "required": ["none", "minor", "major", "destroyed"],
             "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}
           },
-          "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "valid_fraction": {"type": "number", "minimum": 0, "maximum": 1}
         }
       }
     }
