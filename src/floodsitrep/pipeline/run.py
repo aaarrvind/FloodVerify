@@ -10,13 +10,13 @@ def run_tile(tile_id, evidence_dir="evidence/samples", report_text=None):
     result = {"tile_id": tile_id, "evidence_source": evidence["source"],
               "evidence": evidence, "claims": None, "advisory": None}
     try:
-        from floodsitrep.nlp.checker import verify               # member 4
+        from floodsitrep.nlp.checker import verify  # member 4
         if report_text:
             result["claims"] = verify(report_text, evidence)
     except ImportError:
         pass
     try:
-        from floodsitrep.advisory.generate import advise          # member 5
+        from floodsitrep.advisory.generate import advise  # member 5
         if result["claims"]:
             result["advisory"] = {lang: advise(result["claims"], lang) for lang in ("en", "ar")}
     except ImportError:
