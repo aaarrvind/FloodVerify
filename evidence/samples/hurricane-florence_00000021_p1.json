@@ -1,0 +1,116 @@
+{
+  "tile_id": "hurricane-florence_00000021_p1",
+  "source": "labels",
+  "gsd_m": 0.5,
+  "grid": "3x3",
+  "cells": [
+    {
+      "cell": "r0c0",
+      "buildings": 0,
+      "class_fraction": {
+        "none": 0.0,
+        "minor": 0.0,
+        "major": 0.0,
+        "destroyed": 0.0
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    },
+    {
+      "cell": "r0c1",
+      "buildings": 3,
+      "class_fraction": {
+        "none": 0.3333,
+        "minor": 0.3333,
+        "major": 0.3333,
+        "destroyed": 0.0
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    },
+    {
+      "cell": "r0c2",
+      "buildings": 0,
+      "class_fraction": {
+        "none": 0.0,
+        "minor": 0.0,
+        "major": 0.0,
+        "destroyed": 0.0
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    },
+    {
+      "cell": "r1c0",
+      "buildings": 1,
+      "class_fraction": {
+        "none": 1.0,
+        "minor": 0.0,
+        "major": 0.0,
+        "destroyed": 0.0
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    },
+    {
+      "cell": "r1c1",
+      "buildings": 5,
+      "class_fraction": {
+        "none": 0.2,
+        "minor": 0.2,
+        "major": 0.2,
+        "destroyed": 0.4
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    },
+    {
+      "cell": "r1c2",
+      "buildings": 0,
+      "class_fraction": {
+        "none": 0.0,
+        "minor": 0.0,
+        "major": 0.0,
+        "destroyed": 0.0
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    },
+    {
+      "cell": "r2c0",
+      "buildings": 0,
+      "class_fraction": {
+        "none": 0.0,
+        "minor": 0.0,
+        "major": 0.0,
+        "destroyed": 0.0
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    },
+    {
+      "cell": "r2c1",
+      "buildings": 1,
+      "class_fraction": {
+        "none": 1.0,
+        "minor": 0.0,
+        "major": 0.0,
+        "destroyed": 0.0
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    },
+    {
+      "cell": "r2c2",
+      "buildings": 0,
+      "class_fraction": {
+        "none": 0.0,
+        "minor": 0.0,
+        "major": 0.0,
+        "destroyed": 0.0
+      },
+      "confidence": 1.0,
+      "valid_fraction": 1.0
+    }
+  ]
+}
