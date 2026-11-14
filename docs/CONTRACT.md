@@ -16,3 +16,10 @@ Open a PR touching `common/` or the schema, tag all five members, merge only wit
 ## Evidence rules (added 14 Nov)
 - Cells with no buildings have all-zero class fractions.
 - `valid_fraction` is the share of the cell with real imagery. Below 0.5 the cell has no usable imagery, and the checker must return `not_verifiable` for any claim about it.
+- Label evidence counts buildings from the xBD label polygons (exact, each building once, by centroid). Predicted evidence counts buildings from the model's mask, so its counts are approximate and can merge touching buildings.
+
+## Event split (added 15 Nov, member 1)
+Tiles are split by whole event, set in `src/floodsitrep/data/splits.py` and written to
+`tiles.csv` (column `role`): train = hurricane-harvey, hurricane-matthew, midwest-flooding;
+val = hurricane-florence; test = nepal-flooding. Midwest is not used for validation because only
+about 2% of its buildings are major or destroyed.
