@@ -27,6 +27,8 @@ def bin_of(fraction: float) -> str:
 def class_fraction(cells: list[dict], damage_class: str) -> float | None:
     """Share of buildings in `cells` with the class. 'damaged' = minor+major+destroyed.
 
+    Building counts are whole numbers, so each cell's count per class is rounded to an
+    integer first. That removes the error from the 4-decimal fractions stored in the evidence.
     Returns None when there are no buildings or the class is unknown.
     """
     if damage_class == "damaged":
@@ -38,7 +40,7 @@ def class_fraction(cells: list[dict], damage_class: str) -> float | None:
     total = sum(c["buildings"] for c in cells)
     if total == 0:
         return None
-    hits = sum(c["buildings"] * c["class_fraction"][k] for c in cells for k in keys)
+    hits = sum(round(c["buildings"] * c["class_fraction"][k]) for c in cells for k in keys)
     return hits / total
 
 
