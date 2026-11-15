@@ -9,11 +9,11 @@
 /src/floodsitrep/cv/models/         @aaarrvind
 /src/floodsitrep/cv/train.py        @aaarrvind
 /configs/cv/                        @aaarrvind
-/src/floodsitrep/cv/eval/           @member3
-/src/floodsitrep/cv/export_evidence.py @member3
-/reports/cv/                        @member3
+/src/floodsitrep/cv/eval/           @aaarrvind
+/src/floodsitrep/cv/export_evidence.py @aaarrvind
+/reports/cv/                        @aaarrvind
 /src/floodsitrep/nlp/               @Antaun
 /configs/nlp/                       @Antaun
-/src/floodsitrep/advisory/          @member5
-/demo/                              @member5
-/reports/nlp/                       @member5
+/src/floodsitrep/advisory/          @Antaun
+/demo/                              @Antaun
+/reports/nlp/                       @Antaun
