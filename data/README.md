@@ -76,6 +76,11 @@ D = "/content/drive/MyDrive/MAAI 902 X 901 PROJECT"
 !cp -r "{D}/xbd/tier3" /content/xbd/           # Nepal (test role)
 !cp "{D}/xbd/rscc_flood_manifest.csv" /content/xbd/
 ```
+Colab setup (tested on a T4, 15 Nov): clone the repo, then `pip install -q -e . --no-deps jsonschema`.
+The running notebook does not see a package installed after it started, so either restart the
+runtime or run `import sys; sys.path.insert(0, "/content/FloodVerify/src")` before importing
+`floodsitrep`. Role sizes to expect: train 5,488, val 2,184, test 2,476 tiles.
+
 Ignore pixels where `valid` is False when computing the loss.
 Starting loss weights (inverse square root of class frequency, 500 random train tiles,
 background / no / minor / major / destroyed): 0.10 / 0.52 / 0.88 / 0.75 / 2.74. About 93% of
