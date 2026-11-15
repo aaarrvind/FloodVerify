@@ -1,0 +1,16 @@
+# Loss comparison partner of m1_siamese_unet.yaml: identical except weighted cross-entropy.
+model: siamese_unet
+encoder: resnet34
+pretrained: true
+loss: ce
+class_weights: [0.10, 0.52, 0.88, 0.75, 2.74]
+epochs: 20
+batch_size: 8
+lr: 3.0e-4
+weight_decay: 1.0e-4
+warmup_steps: 200
+amp: true
+seed: 0
+tile_size: 512
+max_train_tiles: 0
+max_val_tiles: 0

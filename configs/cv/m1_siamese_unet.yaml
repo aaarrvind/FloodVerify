@@ -1,5 +1,19 @@
+# M1 baseline: siamese U-Net, shared ResNet-34 encoder, Dice + focal loss.
+# Run: python -m floodsitrep.cv.train --config configs/cv/m1_siamese_unet.yaml ...
 model: siamese_unet
-encoder: resnet34
+encoder: resnet34          # informational; the encoder is fixed to torchvision ResNet-34
+pretrained: true           # ImageNet IMAGENET1K_V1
 loss: dice_focal
+class_weights: [0.10, 0.52, 0.88, 0.75, 2.74]   # bg / no / minor / major / destroyed (focal term)
+focal_gamma: 2.0
+dice_weight: 1.0
+epochs: 20
+batch_size: 8
+lr: 3.0e-4
+weight_decay: 1.0e-4
+warmup_steps: 200
+amp: true
 seed: 0
 tile_size: 512
+max_train_tiles: 0
+max_val_tiles: 0

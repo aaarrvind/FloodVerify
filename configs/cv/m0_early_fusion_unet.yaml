@@ -1,0 +1,18 @@
+# M0: early fusion, pre + post stacked as 6 channels into one ResNet-34 U-Net.
+model: early_fusion_unet
+encoder: resnet34
+pretrained: true
+loss: dice_focal
+class_weights: [0.10, 0.52, 0.88, 0.75, 2.74]
+focal_gamma: 2.0
+dice_weight: 1.0
+epochs: 20
+batch_size: 8
+lr: 3.0e-4
+weight_decay: 1.0e-4
+warmup_steps: 200
+amp: true
+seed: 0
+tile_size: 512
+max_train_tiles: 0
+max_val_tiles: 0
