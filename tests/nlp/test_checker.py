@@ -61,3 +61,14 @@ def test_samples_agree_with_themselves():
                     continue
                 claim = _claim(c["cell"], bin_of(frac), cls)
                 assert check_claim(claim, ev) == "supported"
+
+
+def test_tile_level_boundary_uses_integer_counts():
+    # hurricane-florence_00000021_p1: 6 damaged of 10 buildings is exactly 60%
+    ev = _evidence(
+        _cell("r0c1", 3, none=0.3333, minor=0.3333, major=0.3333),
+        _cell("r1c0", 1, none=1.0),
+        _cell("r1c1", 5, none=0.2, minor=0.2, major=0.2, destroyed=0.4),
+        _cell("r2c1", 1, none=1.0),
+    )
+    assert class_fraction(ev["cells"], "damaged") == 0.6
