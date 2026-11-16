@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import asdict, replace
 
 from floodsitrep.common.interfaces import CLASSES
+from floodsitrep.nlp.claims import extract_claims
 from floodsitrep.nlp.schema import Claim
 
 MIN_VALID = 0.5  # cells with less real imagery than this cannot be verified
@@ -61,3 +62,8 @@ def check_claim(claim: Claim, evidence: dict) -> str:
 def verify_claims(claims: list[Claim], evidence: dict) -> list[Claim]:
     """Attach a verdict to every claim."""
     return [replace(c, verdict=check_claim(c, evidence)) for c in claims]
+
+
+def verify(report_text: str, evidence: dict) -> list[dict]:
+    """Contract entry point: report text + evidence -> list of claim dicts with a verdict."""
+    return [asdict(c) for c in verify_claims(extract_claims(report_text), evidence)]
