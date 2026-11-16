@@ -10,6 +10,8 @@ Raw data, tiles, evidence folders and checkpoints live on the shared Google Driv
 | xBD (official, xview2.org) | training, validation, test, evidence | Drive `xbd/` (train, test, hold, tier3) | CC BY-NC-SA 4.0, non-commercial, share alike, credit | Terms page read 2026-11-13 |
 | RSCC captions (`BiliSakura/RSCC`, file `RSCC_qvq.jsonl`) | test sentences for the claim checker | Drive `xbd/rscc_flood_manifest.csv` (flood events only) | CC BY 4.0 | Hugging Face card, 2026-11-13 |
 | HumAID (`QCRI/HumAID-all`) | advisory layer (need categories) | download from Hugging Face | Card conflicts: header CC BY-NC-SA 4.0, body NC 4.0. Use the stricter | 2026-11-13 |
+| Qwen3-VL-4B-Instruct (`Qwen/Qwen3-VL-4B-Instruct`) | main captioner (notebooks/m4/02) | download from Hugging Face | Apache-2.0 | Hugging Face model card, 2026-11-17 |
+| Qwen2.5-VL-3B-Instruct (`Qwen/Qwen2.5-VL-3B-Instruct`) | comparison captioner only, not in the demo | download from Hugging Face | Qwen Research License (`qwen-research`): research use, non-commercial. The 7B model is Apache, the 3B is not | Hugging Face model card, 2026-11-17 |
 | NCEMA "Rain Floods" guidance (EN and AR) | advisory snippets | Drive `SEM 1 FINAL PROJECT/guidance_ncema_rain_floods_en_ar.md` | Reuse terms not checked [VERIFY]; cite NCEMA | 2026-11-13 |
 | FEMA flood sheet P-2406 (AR) | advisory snippets | Drive `guidance_passages_fema_ar_clean.csv` | FEMA: most material free of copyright; cite FEMA | fema.gov website-information page, 2026-11-14 |
 | BRIGHT (optional) | evaluation (Libya flood) | download only if used | Mostly CC BY-NC, varies per event | [VERIFY] before use |
@@ -26,6 +28,7 @@ Satellite Imagery", IEEE CVPR Workshops 2019, pp. 10-17.
 - Label evidence counts buildings from the label polygons (exact). Predicted evidence will come from the model's mask, so its counts are approximate. Do not compare them without saying so.
 - Black no-data areas exist in some tiles; `valid_fraction` records them and cells below 0.5 are `not_verifiable`.
 - `gsd_m` in evidence is a nominal 0.5 m; true resolution varies.
+- Evidence comes from annotator labels, so cloud or haze in an image is not captured: `valid_fraction` only detects black no-data pixels. A caption can therefore be checked against labels for a region it could not see. A brightness and contrast test could not tell haze from dark vegetation, so there is no haze flag yet.
 
 ## Folder layout on the Drive
 ```
@@ -38,6 +41,7 @@ xbd/
     tiles.csv                      tile_id, event, xbd_split, part, role
     evidence_labels/               one label-derived evidence JSON per tile
     class_weights.json             pixel class counts and starting loss weights (train role)
+    captions/                      per-cell captions (qwen3vl4b_cells_50.json, qwen25vl3b_cells_20_v2.json), claims_verdicts.csv, captioning.yaml
 ```
 Manifest part numbering: part 1 top-left, part 2 top-right, part 3 bottom-left, part 4
 bottom-right (x0, y0 in the manifest give the crop origin).
