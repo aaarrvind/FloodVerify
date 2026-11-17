@@ -9,7 +9,7 @@ Raw data, tiles, evidence folders and checkpoints live on the shared Google Driv
 |---------|----------|-------|---------|---------|
 | xBD (official, xview2.org) | training, validation, test, evidence | Drive `xbd/` (train, test, hold, tier3) | CC BY-NC-SA 4.0, non-commercial, share alike, credit | Terms page read 2026-11-13 |
 | RSCC captions (`BiliSakura/RSCC`, file `RSCC_qvq.jsonl`) | test sentences for the claim checker | Drive `xbd/rscc_flood_manifest.csv` (flood events only) | CC BY 4.0 | Hugging Face card, 2026-11-13 |
-| HumAID (`QCRI/HumAID-all`) | advisory layer (need categories) | download from Hugging Face | Card conflicts: header CC BY-NC-SA 4.0, body NC 4.0. Use the stricter | 2026-11-13 |
+| HumAID (`QCRI/HumAID-all`) | training (text classifier) | Drive only (humaid/), not in git | Research use only (humanitarian computing); non-commercial. Terms: https://crisisnlp.qcri.org/terms-of-use.html. Dataset page: https://crisisnlp.qcri.org/humaid_dataset
 | Qwen3-VL-4B-Instruct (`Qwen/Qwen3-VL-4B-Instruct`) | main captioner (notebooks/m4/02) | download from Hugging Face | Apache-2.0 | Hugging Face model card, 2026-11-17 |
 | Qwen2.5-VL-3B-Instruct (`Qwen/Qwen2.5-VL-3B-Instruct`) | comparison captioner only, not in the demo | download from Hugging Face | Qwen Research License (`qwen-research`): research use, non-commercial. The 7B model is Apache, the 3B is not | Hugging Face model card, 2026-11-17 |
 | NCEMA "Rain Floods" guidance (EN and AR) | advisory snippets | Drive `SEM 1 FINAL PROJECT/guidance_ncema_rain_floods_en_ar.md` | Reuse terms not checked [VERIFY]; cite NCEMA | 2026-11-13 |
