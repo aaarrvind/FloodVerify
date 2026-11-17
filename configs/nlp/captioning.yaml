@@ -1,0 +1,123 @@
+date: '2026-11-16'
+transformers: 5.23.0
+torch: 2.14.1+cu130
+main_model: Qwen/Qwen3-VL-4B-Instruct
+compare_model: Qwen/Qwen2.5-VL-3B-Instruct
+dtype: float16
+decoding:
+  do_sample: false
+  max_new_tokens: 40
+granularity: per-cell crops (3x3), pre+post image pair per crop
+input_method:
+  main_model: images inside the chat message (caption_cell)
+  compare_model: image placeholders + processor(images=...) (caption_cell_split)
+seed: 42
+n_main: 50
+n_compare: 20
+selection: stratified by disaster, pilot tiles excluded; comparison = 4 tiles per
+  disaster from the main set
+tiles_dir: /content/drive/MyDrive/MAAI 902 X 901 PROJECT/xbd/processed/xbd
+pilot_tiles:
+- hurricane-florence_00000066_p1
+- hurricane-florence_00000016_p4
+- hurricane-harvey_00000219_p2
+- hurricane-harvey_00000190_p3
+- hurricane-matthew_00000152_p1
+- hurricane-matthew_00000109_p3
+- midwest-flooding_00000101_p1
+- midwest-flooding_00000094_p2
+- nepal-flooding_00000604_p3
+- nepal-flooding_00000432_p1
+main_tiles:
+- hurricane-florence_00000066_p3
+- hurricane-florence_00000017_p1
+- hurricane-florence_00000181_p2
+- hurricane-florence_00000157_p4
+- hurricane-florence_00000142_p4
+- hurricane-florence_00000083_p4
+- hurricane-florence_00000061_p3
+- hurricane-florence_00000479_p3
+- hurricane-florence_00000052_p4
+- hurricane-florence_00000277_p3
+- hurricane-harvey_00000030_p1
+- hurricane-harvey_00000027_p3
+- hurricane-harvey_00000067_p4
+- hurricane-harvey_00000167_p4
+- hurricane-harvey_00000183_p3
+- hurricane-harvey_00000401_p4
+- hurricane-harvey_00000497_p3
+- hurricane-harvey_00000021_p4
+- hurricane-harvey_00000459_p1
+- hurricane-harvey_00000151_p4
+- hurricane-matthew_00000404_p1
+- hurricane-matthew_00000309_p4
+- hurricane-matthew_00000151_p3
+- hurricane-matthew_00000337_p2
+- hurricane-matthew_00000206_p3
+- hurricane-matthew_00000012_p3
+- hurricane-matthew_00000127_p1
+- hurricane-matthew_00000313_p3
+- hurricane-matthew_00000253_p3
+- hurricane-matthew_00000124_p1
+- midwest-flooding_00000186_p3
+- midwest-flooding_00000288_p3
+- midwest-flooding_00000101_p3
+- midwest-flooding_00000096_p4
+- midwest-flooding_00000311_p4
+- midwest-flooding_00000098_p1
+- midwest-flooding_00000300_p2
+- midwest-flooding_00000294_p3
+- midwest-flooding_00000238_p1
+- midwest-flooding_00000046_p1
+- nepal-flooding_00000470_p3
+- nepal-flooding_00000549_p2
+- nepal-flooding_00000127_p4
+- nepal-flooding_00000387_p3
+- nepal-flooding_00000080_p3
+- nepal-flooding_00000565_p3
+- nepal-flooding_00000300_p1
+- nepal-flooding_00000370_p2
+- nepal-flooding_00000591_p2
+- nepal-flooding_00000196_p4
+compare_tiles:
+- hurricane-florence_00000066_p3
+- hurricane-florence_00000017_p1
+- hurricane-florence_00000181_p2
+- hurricane-florence_00000157_p4
+- hurricane-harvey_00000030_p1
+- hurricane-harvey_00000027_p3
+- hurricane-harvey_00000067_p4
+- hurricane-harvey_00000167_p4
+- hurricane-matthew_00000404_p1
+- hurricane-matthew_00000309_p4
+- hurricane-matthew_00000151_p3
+- hurricane-matthew_00000337_p2
+- midwest-flooding_00000186_p3
+- midwest-flooding_00000288_p3
+- midwest-flooding_00000101_p3
+- midwest-flooding_00000096_p4
+- nepal-flooding_00000470_p3
+- nepal-flooding_00000549_p2
+- nepal-flooding_00000127_p4
+- nepal-flooding_00000387_p3
+prompt: 'Image 1 is BEFORE a flood or storm and Image 2 is AFTER, showing the same
+  small area from above.
+
+  Answer with one line only.
+
+  If there are no buildings, write: no buildings.
+
+  If the area is blank, cloudy or hazy, write: not visible.
+
+  If the buildings look the same in both images, write: no damage.
+
+  Otherwise write how many of the buildings are damaged and how badly, in the form:
+
+  SHARE of the buildings show LEVEL damage.
+
+  SHARE is one of: none, few, some, many, most. LEVEL is one of: minor, major, destroyed.
+
+  Describe only what can be seen from above.'
+compare_model_note: Qwen2.5-VL-3B received the images (72 image tokens per crop pair)
+  and describes buildings when asked a plain question, but with the constrained cell
+  prompt it returned 'no buildings.' for all 180 cells, so no claims could be verified.
