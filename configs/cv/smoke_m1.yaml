@@ -1,0 +1,16 @@
+# Gate 1 smoke test: M1 on a small subset, 2 epochs. Check: loss falls, last.pt and best.pt
+# appear in the run folder. Takes a few minutes on a T4.
+model: siamese_unet
+encoder: resnet34
+pretrained: true
+loss: dice_focal
+class_weights: [0.10, 0.52, 0.88, 0.75, 2.74]
+epochs: 2
+batch_size: 8
+lr: 3.0e-4
+warmup_steps: 20
+amp: true
+seed: 0
+max_train_tiles: 320
+max_val_tiles: 96
+log_every: 10
