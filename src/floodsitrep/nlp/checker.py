@@ -25,6 +25,17 @@ def bin_of(fraction: float) -> str:
     return "most"
 
 
+def reachable(quantity: str, total: int) -> bool:
+    """True when some building count out of `total` falls in the bin of `quantity`.
+
+    Shares of whole buildings are k / total, so with few buildings some bins cannot occur:
+    "few" (above 0 and below 10%) needs at least 11 buildings, "some" (10% to 30%) at least 4,
+    "many" (30% to 60%) at least 2. A claim in an unreachable bin cannot be supported by any
+    evidence, so the checker abstains instead of calling it contradicted.
+    """
+    return total > 0 and any(bin_of(k / total) == quantity for k in range(total + 1))
+
+
 def class_fraction(cells: list[dict], damage_class: str) -> float | None:
     """Share of buildings in `cells` with the class. 'damaged' = minor+major+destroyed.
 
@@ -46,7 +57,10 @@ def class_fraction(cells: list[dict], damage_class: str) -> float | None:
 
 
 def check_claim(claim: Claim, evidence: dict) -> str:
-    """Return 'supported', 'contradicted' or 'not_verifiable' for one claim."""
+    """Return 'supported', 'contradicted' or 'not_verifiable' for one claim.
+
+    A claim whose quantity word cannot occur with this many buildings is not_verifiable (see `reachable`).
+    """
     cells = evidence["cells"]
     if claim.cell:
         cells = [c for c in cells if c["cell"] == claim.cell]
@@ -55,6 +69,8 @@ def check_claim(claim: Claim, evidence: dict) -> str:
         return "not_verifiable"
     frac = class_fraction(usable, claim.damage_class)
     if frac is None:
+        return "not_verifiable"
+    if not reachable(claim.quantity, sum(c["buildings"] for c in usable)):
         return "not_verifiable"
     return "supported" if bin_of(frac) == claim.quantity else "contradicted"
 

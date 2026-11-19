@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from floodsitrep.nlp.checker import bin_of, check_claim, class_fraction
+from floodsitrep.nlp.checker import bin_of, check_claim, class_fraction, reachable
 from floodsitrep.nlp.schema import Claim
 
 SAMPLES = Path(__file__).parents[2] / "evidence" / "samples"
@@ -32,7 +32,7 @@ def test_bins():
 def test_supported_and_contradicted():
     ev = _evidence(_cell("r0c0", 10, none=0.2, destroyed=0.8))
     assert check_claim(_claim("r0c0", "most", "destroyed"), ev) == "supported"
-    assert check_claim(_claim("r0c0", "few", "destroyed"), ev) == "contradicted"
+    assert check_claim(_claim("r0c0", "some", "destroyed"), ev) == "contradicted"
 
 
 def test_no_usable_imagery_is_not_verifiable():
@@ -72,3 +72,24 @@ def test_tile_level_boundary_uses_integer_counts():
         _cell("r2c1", 1, none=1.0),
     )
     assert class_fraction(ev["cells"], "damaged") == 0.6
+
+
+def test_reachable_bins_depend_on_the_number_of_buildings():
+    assert all(reachable("none", n) and reachable("most", n) for n in range(1, 30))
+    assert [reachable("few", n) for n in (1, 5, 10, 11, 20)] == [False, False, False, True, True]
+    assert [reachable("some", n) for n in (1, 2, 3, 4, 10)] == [False, False, False, True, True]
+    assert [reachable("many", n) for n in (1, 2, 5)] == [False, True, True]
+    assert not reachable("few", 0)
+
+
+def test_unreachable_quantity_is_not_verifiable_not_contradicted():
+    ev = _evidence(_cell("r0c0", 3, minor=1.0))
+    assert check_claim(_claim("r0c0", "few", "minor"), ev) == "not_verifiable"
+    assert check_claim(_claim("r0c0", "most", "minor"), ev) == "supported"
+    assert check_claim(_claim("r0c0", "none", "minor"), ev) == "contradicted"
+
+
+def test_few_is_checkable_with_enough_buildings():
+    ev = _evidence(_cell("r0c0", 11, none=10 / 11, minor=1 / 11))
+    assert check_claim(_claim("r0c0", "few", "minor"), ev) == "supported"
+    assert check_claim(_claim("r0c0", "most", "minor"), ev) == "contradicted"
