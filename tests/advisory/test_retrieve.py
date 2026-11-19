@@ -1,5 +1,6 @@
-import numpy as np
 import pytest
+
+np = pytest.importorskip("numpy")  # CI installs no numpy; the test runs locally and in Colab
 
 from floodsitrep.advisory.retrieve import (
     FALLBACK_QUERY,
