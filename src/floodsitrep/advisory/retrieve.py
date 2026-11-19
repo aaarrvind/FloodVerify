@@ -25,9 +25,14 @@ ADVICE_FOR = {
     "major": "stay away from damaged buildings and follow evacuation orders from authorities",
     "destroyed": "stay away from damaged buildings and follow evacuation orders from authorities",
 }
-# Provisional cutoff: on-topic queries scored 0.70-0.84 and an off-topic one 0.58 (3 queries,
-# bge-m3, 130 passages). Re-set it from the labelled sheet before relying on it.
-MIN_SCORE = 0.6
+# Cutoff chosen on the 60 labelled rows (20 queries, bge-m3, 130 passages; labels drafted by
+# Claude and checked by one team member, so indicative only). Cosine scores by label:
+#   relevant 0.64-0.85 (mean 0.76), partly 0.65-0.80 (0.71), not relevant 0.55-0.67 (0.61).
+# At 0.70 no not-relevant passage is kept and 21 of 28 relevant ones are; at 0.65 it is
+# 25/28 relevant and 4/16 not relevant. We prefer "no guidance found" to an off-topic
+# passage. The cutoff was tuned on the same 20 queries, so real performance will be lower.
+# Re-set it when the collection changes (new sources shift the scores).
+MIN_SCORE = 0.70
 
 
 def load_passages(path):
