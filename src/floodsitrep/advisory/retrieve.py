@@ -20,7 +20,14 @@ import numpy as np
 
 MODEL_NAME = "BAAI/bge-m3"
 FALLBACK_QUERY = "flood safety advice for residents and what to do after a flood"
-DAMAGE_WORDS = {"minor": "minor damage", "major": "major damage", "destroyed": "destroyed buildings"}
+ADVICE_FOR = {
+    "minor": "be careful and check your home for damage before going back after a flood",
+    "major": "stay away from damaged buildings and follow evacuation orders from authorities",
+    "destroyed": "stay away from damaged buildings and follow evacuation orders from authorities",
+}
+# Provisional cutoff: on-topic queries scored 0.70-0.84 and an off-topic one 0.58 (3 queries,
+# bge-m3, 130 passages). Re-set it from the labelled sheet before relying on it.
+MIN_SCORE = 0.6
 
 
 def load_passages(path):
@@ -62,32 +69,41 @@ def load_or_embed(model, passages, cache_path=None):
 
 
 def claims_to_query(claims):
-    """Supported claims -> one English query, e.g. 'many buildings with major damage'.
+    """Supported claims -> one English, advice-shaped query.
 
-    Only claims with verdict 'supported' are used. Claims about 'none' damage or without a
-    damage class add nothing. With no usable claim a general flood-safety query is returned."""
+    A claim like 'many buildings with major damage' matched guidance poorly (best score 0.58 on
+    our 130 passages), because guidance talks about what to do, not about damage counts. So each
+    damage class is turned into the advice topic it calls for (ADVICE_FOR). The quantity is not
+    used: advice does not depend on how many buildings. The wording is a starting point to be
+    checked on the labelled sheet.
+
+    Only claims with verdict 'supported' count. Claims about 'none' damage or without a damage
+    class add nothing. With no usable claim a general flood-safety query is returned."""
     parts = []
     for c in claims or []:
         if getattr(c, "verdict", None) != "supported":
             continue
-        damage = DAMAGE_WORDS.get(getattr(c, "damage_class", None))
-        if damage is None or getattr(c, "quantity", None) in (None, "none"):
+        topic = ADVICE_FOR.get(getattr(c, "damage_class", None))
+        if topic is None or getattr(c, "quantity", None) in (None, "none"):
             continue
-        parts.append(f"{c.quantity} buildings with {damage}")
-    parts = list(dict.fromkeys(parts))  # same phrase once, order kept
+        parts.append(topic)
+    parts = list(dict.fromkeys(parts))  # same topic once, order kept
     return "; ".join(parts) if parts else FALLBACK_QUERY
 
 
-def search(query, model, vectors, passages, k=3, language=None):
+def search(query, model, vectors, passages, k=3, language=None, min_score=None):
     """Top-k passages for a text query, best first. language 'en' or 'ar' restricts results.
 
     Returns dicts: rank, score, plus every column of the passage. Cosine similarity, since
-    both sides are unit length."""
+    both sides are unit length. With min_score, passages scoring below it are dropped, so the
+    result can be shorter than k or empty ('no guidance found')."""
     q = embed(model, [query])[0]
     scores = vectors @ q
     order = np.argsort(-scores)
     hits = []
     for i in order:
+        if min_score is not None and scores[i] < min_score:
+            break  # scores are sorted, nothing later can pass
         if language is not None and passages[i].get("language") != language:
             continue
         hits.append({"rank": len(hits) + 1, "score": float(scores[i]), **passages[i]})
@@ -96,6 +112,10 @@ def search(query, model, vectors, passages, k=3, language=None):
     return hits
 
 
-def retrieve(claims, model, vectors, passages, k=3, language=None):
-    """Verified claims -> top-k guidance passages (the function the advisory step calls)."""
-    return search(claims_to_query(claims), model, vectors, passages, k=k, language=language)
+def retrieve(claims, model, vectors, passages, k=3, language=None, min_score=MIN_SCORE):
+    """Verified claims -> top-k guidance passages (the function the advisory step calls).
+
+    Returns [] when nothing scores at least min_score; the advisory must then say that no
+    guidance was found and add nothing from memory."""
+    return search(claims_to_query(claims), model, vectors, passages, k=k, language=language,
+                  min_score=min_score)
