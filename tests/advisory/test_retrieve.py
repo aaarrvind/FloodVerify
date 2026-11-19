@@ -53,11 +53,32 @@ def test_language_filter():
     assert search("power", FakeModel(), vectors(), PASSAGES, k=1, language="en")[0]["id"] == "p2"
 
 
+def test_min_score_drops_weak_hits():
+    all_hits = search("roads", FakeModel(), vectors(), PASSAGES, k=3)
+    assert len(all_hits) == 3
+    strong = search("roads", FakeModel(), vectors(), PASSAGES, k=3, min_score=0.6)
+    assert [h["id"] for h in strong] == ["p1", "p3"]  # p2 scores 0 for this query
+    assert search("roads", FakeModel(), vectors(), PASSAGES, k=3, min_score=1.1) == []
+    assert search("roads", FakeModel(), vectors(), PASSAGES, k=3, language="en", min_score=0.6)[0]["id"] == "p1"
+
+
+def test_retrieve_returns_nothing_below_cutoff():
+    # fallback query points at an unrelated direction, so no passage reaches the default cutoff
+    assert retrieve([], FakeModel(), vectors(), PASSAGES, k=3) == []
+    assert len(retrieve([], FakeModel(), vectors(), PASSAGES, k=3, min_score=None)) == 3
+
+
 def test_claims_to_query():
     supported = Claim("x", "r0c0", "many", "major", verdict="supported")
     wrong = Claim("y", "r0c1", "few", "destroyed", verdict="contradicted")
-    assert claims_to_query([supported, wrong]) == "many buildings with major damage"
-    assert claims_to_query([supported, supported]) == "many buildings with major damage"
+    major_query = claims_to_query([supported, wrong])
+    assert "damaged buildings" in major_query and "evacuation" in major_query
+    assert claims_to_query([supported, supported]) == major_query
+    destroyed = Claim("z", "r1c1", "some", "destroyed", verdict="supported")
+    assert claims_to_query([supported, destroyed]) == major_query  # same advice, said once
+    minor = Claim("m", "r2c2", "few", "minor", verdict="supported")
+    assert claims_to_query([minor]) != major_query
+    assert claims_to_query([Claim("n", "r0c0", "none", "damaged", verdict="supported")]) == FALLBACK_QUERY
     assert claims_to_query([]) == FALLBACK_QUERY
     assert claims_to_query([wrong]) == FALLBACK_QUERY
     assert claims_to_query(None).strip()
