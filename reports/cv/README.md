@@ -59,6 +59,7 @@ Several notebooks clone the feature branch of the day (`m2/models-train`, `m3/ev
 | 10 | `notebooks/m3/07_destroyed_diagnosis_threshold_test.ipynb` | 19 Nov | L4 | Destroyed-class diagnosis and the decision-threshold test (tuned on half of Florence, checked on the other half) |
 | 11 | `notebooks/m3/08_fig10_nepal_intervals.ipynb` | 20 Nov | CPU | Figure 10 (Nepal estimates with 95% intervals) |
 | 12 | `notebooks/m3/09_dataset_counts.ipynb` | 21 Nov | CPU | Exact building and pixel counts per class, event and role, with cross-checks |
+| 13-17 | `notebooks/m3/post_hoc_study/01` to `05` | 20-21 Nov | T4 / L4 | **Post-hoc** (after the Nepal test): checkpoint inventory and exact clean reproduction, M3 (MSTA U-Net) and a two-head ablation, post-image corruption study on Nepal. See that folder's README |
 
 `notebooks/m2/train_colab.ipynb` and `notebooks/m3/eval_export_colab.ipynb` are the clean templates.
 `confidence_table_building_cells.csv`: what each confidence level is worth on building pixels
@@ -99,3 +100,39 @@ Seeds 1-2 used `--set seed=<n>`. Number of loader workers varied between runs (s
 | M1 Dice + focal | 0 / 1 / 2 | 0.299 / 0.324 / 0.374 | 0.299 / 0.309 / 0.363 | 0.668 / 0.686 / 0.700 | 0.058 / 0.064 / 0.117 |
 | M0 Dice + focal | 0 / 1 / 2 | 0.355 / 0.358 / 0.293 | 0.349 / 0.357 / 0.285 | 0.672 / 0.697 / 0.616 | 0.131 / 0.106 / 0.075 |
 | M2 SegFormer, weighted CE | 0 / 1 / 2 | 0.389 / 0.366 / 0.386 | 0.399 / 0.387 / 0.399 | 0.748 / 0.741 / 0.765 | 0.136 / 0.110 / 0.140 |
+
+# Post-hoc study (20-21 Nov; `notebooks/m3/post_hoc_study/`)
+Run after the Nepal test. The final model and every number above are unchanged; nothing here was used to choose
+anything that is reported as a blind result.
+
+**Reproduction.** Re-running the 12 frozen checkpoints on clean Nepal reproduced the 18 Nov results exactly
+(2,476 / 2,476 crops identical, 0 pixel changes, score differences 0.0).
+
+**M3, Multi-Scale Temporal Attention U-Net** (M1 + channel/spatial gates and cross-temporal attention at strides
+16 and 32; 26.9 M parameters; same recipe as M1 weighted CE). Checkpoints in `<Drive>/m3_experiments/`.
+
+| Run name | Model | Loss | Seed | Epochs | Best epoch | Val xView2 (pixel) | Nepal pixel score (post-hoc) |
+|----------|-------|------|------|--------|------------|--------------------|------------------------------|
+| m3_msta_unet_ce_s0 | M3 MSTA U-Net | weighted CE | 0 | 20 | 17 | 0.351 | 0.386 |
+| m3_msta_unet_ce_s1 | M3 MSTA U-Net | weighted CE | 1 | 20 | 14 | 0.367 | 0.371 |
+| m3_msta_unet_ce_s2 | M3 MSTA U-Net | weighted CE | 2 | 20 | 5 | 0.349 | 0.346 |
+| exploratory_abl_m1fusion_dualhead_ce_s0 | M1 fusion + two output heads (exploratory) | weighted CE | 0 | 20 | 19 | 0.362 | 0.388 |
+
+- Florence: M3 0.356 +/- 0.010 vs M1 weighted CE 0.361 +/- 0.004 (better minor F1, worse major and destroyed).
+- Nepal (post-hoc): M3 0.368 vs M1 weighted CE 0.416; difference -0.049 (95% CI over images -0.059 to -0.038).
+- The attention is barely used: the learned residual scale gamma stays near 0, and switching attention off
+  changes the Florence score by at most 0.011.
+
+**Post-image corruption on Nepal** (pre image, labels and no-data mask untouched; family means over 3 seeds,
+pixel score; 95% intervals over the 619 images in the study notebooks):
+
+| Family | Clean | Noise sigma 10 | Blur sigma 1 | JPEG q50 | Noise sigma 50 | Blur sigma 4 | JPEG q10 |
+|--------|-------|----------------|--------------|----------|----------------|--------------|----------|
+| M1 weighted CE (final) | 0.416 | 0.258 | 0.343 | 0.394 | 0.201 | 0.161 | 0.317 |
+| M2 SegFormer, weighted CE | 0.380 | 0.368 | 0.423 | 0.361 | 0.233 | 0.306 | 0.312 |
+| M3 MSTA U-Net (post-hoc) | 0.368 | 0.252 | 0.341 | 0.384 | 0.133 | 0.180 | 0.310 |
+| M1 Dice + focal | 0.332 | 0.271 | 0.253 | 0.318 | 0.115 | 0.116 | 0.236 |
+| M0 early fusion, Dice + focal | 0.336 | 0.322 | 0.329 | 0.332 | 0.055 | 0.311 | 0.287 |
+
+The final model is the best on clean imagery but fragile: mild noise (sigma 10) costs it 38% of its score, while
+SegFormer loses 3% and is ahead by +0.110 under that noise (all 9 seed pairs agree).
