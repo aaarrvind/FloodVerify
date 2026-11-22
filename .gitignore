@@ -13,3 +13,6 @@ mlruns/
 *.pt
 *.pth
 *.safetensors
+demo/data/tweet_examples.json
+demo/data/advisories.json
+demo/data/linked_tweets.csv
