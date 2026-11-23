@@ -14,6 +14,7 @@ The notebooks in this folder were renamed for the repo:
 | `03_m3_training_and_florence_eval.ipynb` | `train_m3.ipynb` |
 | `04_corruption_study_nepal.ipynb` | `corruption.ipynb` |
 | `05_corruption_analysis.ipynb` | `analysis.ipynb` |
+| `06_exploratory_segformer_mitb2.ipynb` | `exploratory_m2_mitb2.ipynb` (23 Nov, see below) |
 
 All outputs live on the team Drive in `MAAI 902 X 901 PROJECT/m3_experiments/` (not in git). The code the
 notebooks wrote (`m3_model.py`, `corruption.py`, ...) is reproduced in full inside each notebook's
@@ -140,3 +141,17 @@ Some file names carry an older label from when the notebooks were numbered: `sta
 - **M3:** designed and trained after the 18 Nov Nepal results were known; its Nepal results are post-hoc, not a blind test.
 - **Exploratory ablation:** one seed, post-hoc; always reported separately and never used for a significance claim.
 - **Florence (validation)** was used to pick every checkpoint, so Florence scores are optimistic.
+
+## `06_exploratory_segformer_mitb2.ipynb` (23 Nov)
+
+Size-matched check of the CNN-vs-transformer comparison: M2 with the larger MiT-B2 encoder (25.88 M parameters,
+against 25.50 M for M1 and 14.8 M for M2 with MiT-B1). Same M2 recipe (weighted CE, encoder lr 6e-5, decoder lr 6e-4,
+20 epochs, batch 8, seed 0), one seed, **Florence only, never scored on Nepal**. Run on an L4.
+
+| Output (on Drive) | Content |
+| --- | --- |
+| `exploratory/checkpoints/exploratory_m2_segformer_b2_ce_s0/` | `best.pt`, `last.pt`, `config.yaml`, `metrics.jsonl` |
+
+Result (Florence, pixel level): best epoch 10, score 0.346 (MiT-B1 mean 0.345, range 0.334-0.362; M1 weighted CE
+0.356-0.363); localisation F1 0.822, major F1 0.781, destroyed F1 0.067. Peaked later and declined less than MiT-B1
+(last epoch 0.322 against 0.269-0.301).

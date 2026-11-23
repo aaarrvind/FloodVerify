@@ -60,6 +60,7 @@ Several notebooks clone the feature branch of the day (`m2/models-train`, `m3/ev
 | 11 | `notebooks/m3/08_fig10_nepal_intervals.ipynb` | 20 Nov | CPU | Figure 10 (Nepal estimates with 95% intervals) |
 | 12 | `notebooks/m3/09_dataset_counts.ipynb` | 21 Nov | CPU | Exact building and pixel counts per class, event and role, with cross-checks |
 | 13-17 | `notebooks/m3/post_hoc_study/01` to `05` | 20-21 Nov | T4 / L4 | **Post-hoc** (after the Nepal test): checkpoint inventory and exact clean reproduction, M3 (MSTA U-Net) and a two-head ablation, post-image corruption study on Nepal. See that folder's README |
+| 18 | `notebooks/m3/post_hoc_study/06_exploratory_segformer_mitb2.ipynb` | 23 Nov | L4 | **Exploratory, post-hoc**: size-matched M2 with MiT-B2 (25.9 M parameters), one seed, Florence only |
 
 `notebooks/m2/train_colab.ipynb` and `notebooks/m3/eval_export_colab.ipynb` are the clean templates.
 `confidence_table_building_cells.csv`: what each confidence level is worth on building pixels
@@ -117,9 +118,13 @@ anything that is reported as a blind result.
 | m3_msta_unet_ce_s1 | M3 MSTA U-Net | weighted CE | 1 | 20 | 14 | 0.367 | 0.371 |
 | m3_msta_unet_ce_s2 | M3 MSTA U-Net | weighted CE | 2 | 20 | 5 | 0.349 | 0.346 |
 | exploratory_abl_m1fusion_dualhead_ce_s0 | M1 fusion + two output heads (exploratory) | weighted CE | 0 | 20 | 19 | 0.362 | 0.388 |
+| exploratory_m2_segformer_b2_ce_s0 | M2 SegFormer, MiT-B2 encoder (exploratory, size-matched to M1) | weighted CE | 0 | 20 | 10 | 0.346 | not scored |
 
 - Florence: M3 0.356 +/- 0.010 vs M1 weighted CE 0.361 +/- 0.004 (better minor F1, worse major and destroyed).
 - Nepal (post-hoc): M3 0.368 vs M1 weighted CE 0.416; difference -0.049 (95% CI over images -0.059 to -0.038).
+- MiT-B2 (size-matched to M1) scored 0.346 on Florence, the same as the MiT-B1 mean (0.345) and below every M1 seed,
+  so SegFormer's lower score is not explained by its smaller size; it gave the best localisation (0.822) and major
+  F1 (0.781) of all models, but destroyed F1 stayed low (0.067).
 - The attention is barely used: the learned residual scale gamma stays near 0, and switching attention off
   changes the Florence score by at most 0.011.
 
