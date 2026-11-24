@@ -33,6 +33,11 @@ ADVICE_FOR = {
 # passage. The cutoff was tuned on the same 20 queries, so real performance will be lower.
 # Re-set it when the collection changes (new sources shift the scores).
 MIN_SCORE = 0.70
+# passages_v3.csv (English FEMA twins added, embed_text prefix; 210 passages) scores lower in cosine, because
+# the prefix lowers every similarity. On 20 fresh queries (17 answerable, 3 out of scope) a cutoff of 0.60
+# answered 8 of 17 (strict) and abstained on 3 of 3; 0.55 answered 11 of 17 and abstained on 1 of 3; 0.70 answered
+# almost nothing. The demo's own three advice queries score 0.66-0.74, so 0.60 does not silence it. These
+# numbers come from the same fresh queries, so treat them as in-sample. Use --min-score 0.60 with passages_v3.csv.
 
 
 def load_passages(path):
@@ -43,6 +48,13 @@ def load_passages(path):
         if rows and need not in rows[0]:
             raise ValueError(f"passages file has no '{need}' column")
     return rows
+
+
+def embed_text(passage):
+    """What gets embedded for a passage: its embed_text column when the csv has one (source name
+    in front of the sentence, which helped the cosine cutoff separate on-topic from off-topic queries),
+    otherwise the plain text. The text shown to the reader and cited by the advisory is always ``text``."""
+    return passage.get("embed_text") or passage["text"]
 
 
 def load_model(name=MODEL_NAME, device=None):
@@ -66,7 +78,7 @@ def load_or_embed(model, passages, cache_path=None):
         cached = np.load(cache_path)
         if cached.shape[0] == len(passages):
             return cached
-    vectors = embed(model, [p["text"] for p in passages])
+    vectors = embed(model, [embed_text(p) for p in passages])
     if cache_path is not None:
         Path(cache_path).parent.mkdir(parents=True, exist_ok=True)
         np.save(cache_path, vectors)
