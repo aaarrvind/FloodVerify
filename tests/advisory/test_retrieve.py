@@ -5,6 +5,7 @@ np = pytest.importorskip("numpy")  # CI installs no numpy; the test runs locally
 from floodsitrep.advisory.retrieve import (
     FALLBACK_QUERY,
     claims_to_query,
+    embed_text,
     load_or_embed,
     load_passages,
     retrieve,
@@ -114,3 +115,22 @@ def test_load_passages(tmp_path):
     bad.write_text("id,text\np1,hello\n", encoding="utf-8")
     with pytest.raises(ValueError):
         load_passages(bad)
+
+
+def test_embed_text_is_used_when_present_and_text_is_still_returned():
+    assert embed_text({"text": "plain"}) == "plain"
+    assert embed_text({"text": "plain", "embed_text": ""}) == "plain"  # empty column: fall back
+    assert embed_text({"text": "plain", "embed_text": "Source: plain"}) == "Source: plain"
+    passages = [{"id": "p1", "language": "en", "text": "do not drive through flooded roads",
+                 "embed_text": "switch off electricity before leaving"}]
+    seen = []
+
+    class Spy(FakeModel):
+        def encode(self, texts, **kw):
+            seen.extend(texts)
+            return super().encode(texts, **kw)
+
+    vecs = load_or_embed(Spy(), passages)
+    assert seen == ["switch off electricity before leaving"]  # the embed_text, not the shown text
+    hit = search("power", FakeModel(), vecs, passages, k=1)[0]
+    assert hit["text"] == "do not drive through flooded roads"  # reader still sees the plain text
