@@ -584,4 +584,16 @@ def build_app():
 demo = build_app()
 
 if __name__ == "__main__":
-    launch_demo(demo)
+    kw = {
+        "theme": gr.themes.Base(
+            primary_hue="blue",
+            neutral_hue="slate",
+            font=[gr.themes.GoogleFont("Inter"), "system-ui", "sans-serif"],
+        ),
+        "css": CSS,
+    }
+    if "css" in inspect.signature(gr.Blocks.__init__).parameters:
+        demo.theme, demo.css = kw["theme"], kw["css"]
+        demo.launch(share=True)
+    else:
+        demo.launch(**kw, share=True)
