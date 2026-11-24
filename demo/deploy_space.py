@@ -46,7 +46,7 @@ sdk: gradio
 sdk_version: {version}
 app_file: app.py
 pinned: false
-short_description: Fact-check flood damage reports against building-level evidence
+short_description: Check flood damage reports against building evidence
 ---
 
 # FloodVerify demo

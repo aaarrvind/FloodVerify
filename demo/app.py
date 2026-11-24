@@ -2123,7 +2123,7 @@ h1,h2,h3,h4,.serif{font-family:'Fraunces',Georgia,serif!important}
 .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:.2rem 0 .8rem}
 .kpis6{grid-template-columns:repeat(3,1fr)}
 .kpi{--kc:#5AB4F0;--kn:#8FD0F7;background:#0F2438;border:1px solid #243B52;border-bottom:4px solid var(--kc);border-radius:12px;padding:14px 18px;color:#B7C6D4}
-.kpi b{display:block;font-family:'Fraunces',Georgia,serif;font-size:34px;line-height:1.1;color:var(--kn)}
+.kpi b,.gradio-container .kpis .kpi b{display:block!important;font-family:'Fraunces',Georgia,serif!important;font-size:34px!important;line-height:1.1!important;font-weight:600!important;color:var(--kn)!important;-webkit-text-fill-color:var(--kn)!important;opacity:1!important;visibility:visible!important}
 .kpi span{font-size:12.5px;color:#B7C6D4!important;font-family:'Inter',system-ui,sans-serif!important}
 .kpi.ok{--kc:#5CC79B;--kn:#5CC79B}.kpi.bad{--kc:#FF8F70;--kn:#FF8F70}.kpi.na{--kc:#A9B7C1;--kn:#C3CED6}
 .foot{margin:40px 0 4px;padding:18px 16px 0;border-top:1px solid var(--line);text-align:center;font-size:.85rem;line-height:1.5;color:var(--muted)}
@@ -2132,6 +2132,13 @@ h1,h2,h3,h4,.serif{font-family:'Fraunces',Georgia,serif!important}
 .foot a{display:inline!important;padding:0!important;margin:0!important;color:inherit!important;text-decoration:underline;text-underline-offset:2px}
 .foot .team{margin-bottom:.6rem}
 .foot b{color:var(--ink);font-weight:600}
+/* fv-fixes */
+html body .gradio-container .kpis .kpi b{display:block!important;font-family:'Fraunces',Georgia,serif!important;font-size:34px!important;line-height:1.1!important;font-weight:600!important;color:var(--kn)!important;-webkit-text-fill-color:var(--kn)!important;opacity:1!important;visibility:visible!important}
+html body .gradio-container{overflow-x:clip!important;overflow-y:visible!important}
+html body .gradio-container .main,html body .gradio-container .contain,html body .gradio-container .tabs,html body .gradio-container .app{overflow:visible!important}
+html body #fv-foot{width:100%!important;max-width:none!important;min-width:0!important;align-self:stretch!important;flex:1 1 100%!important;box-sizing:border-box}
+html body #fv-foot .foot{display:flex!important;flex-direction:column!important;align-items:center!important;width:100%!important;box-sizing:border-box;text-align:center!important}
+html body #fv-foot .foot p{display:block!important;margin:.15rem 0!important;padding:0!important;text-align:center!important;width:min(100%,88ch)!important;max-width:none!important;float:none!important}
 footer{display:none!important}
 .gradio-container label.selected span{color:var(--on-accent)!important}
 .gradio-container button.sm,.gradio-container button.secondary{border:1px solid var(--line)!important;border-radius:999px!important;font-weight:600}
@@ -2238,7 +2245,8 @@ details.chip .tip{padding:2px 8px 6px;font-weight:400;font-size:.8rem;line-heigh
 #fv-controls>.form{gap:16px!important;background:none!important;background-color:transparent!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;overflow:visible!important}
 #fv-controls>.form>.block{border:1px solid var(--glass-edge)!important;border-radius:var(--r-lg)!important;overflow:hidden}
 /* floating glass tab dock */
-.gradio-container{overflow:clip!important}
+.gradio-container{overflow-x:clip!important;overflow-y:visible!important}
+.gradio-container .main,.gradio-container .contain,.gradio-container .tabs,.gradio-container .app{overflow:visible!important}
 .gradio-container .tab-wrapper{position:sticky!important;top:max(24px,env(safe-area-inset-top));z-index:40;width:fit-content!important;max-width:calc(100% - 8px)!important;margin:6px auto 18px!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}
 .gradio-container .tab-wrapper::after,.gradio-container .tab-wrapper::before{display:none!important}
 .gradio-container .tab-container{display:flex!important;gap:4px;padding:6px!important;border:1px solid var(--glass-edge)!important;border-radius:999px!important;background-color:var(--card)!important;-webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-hi);overflow:visible!important;height:auto!important}
@@ -2526,7 +2534,7 @@ with gr.Blocks(title="FloodVerify") as demo:
             n_slider = gr.Slider(1, 40, value=3, step=1, label="Buildings in an area")
             explain = gr.HTML(explainer_html(3))
             gr.Markdown(ABOUT)
-    gr.HTML(f'<div class="foot">{FOOT}</div>')
+    gr.HTML(f'<div class="foot">{FOOT}</div>', elem_id="fv-foot")
 
     rendered = [
         img_pre,
@@ -2587,6 +2595,6 @@ if __name__ == "__main__":
     }
     if "css" in inspect.signature(gr.Blocks.__init__).parameters:
         demo.theme, demo.css = kw["theme"], kw["css"]
-        demo.launch(share=True)
+        demo.launch()
     else:
         demo.launch(**kw, share=True)
