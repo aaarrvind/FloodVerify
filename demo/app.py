@@ -188,15 +188,25 @@ def default_tile(event):
     return next((t for t in ids if t in CAPTIONS), ids[0] if ids else None)
 
 
+# Events the vision model never saw in training. Per notebook 04, Nepal is the held-out test event.
+HELD_OUT = {"nepal-flooding"}
+
+
 def place_note(tile_id):
-    """'Showing place 3 of 8 in Hurricane Florence.'"""
+    """'Showing place 3 of 8 in Hurricane Florence.' plus a note when the event was held out of training."""
     if not tile_id:
         return ""
     ids = tiles_of(tile_event(tile_id))
     i = ids.index(tile_id) + 1 if tile_id in ids else 1
+    held = (
+        " <b>Unseen event:</b> the damage model was never trained on it, so the evidence below is the model's "
+        "own prediction, not ground truth."
+        if tile_event(tile_id) in HELD_OUT
+        else ""
+    )
     return (
         f"<p class='note place-note'>Showing place {i} of {len(ids)} for <b>{esc(event_name(tile_event(tile_id)))}</b>. "
-        "Each place is one satellite view of an affected area.</p>"
+        f"Each place is one satellite view of an affected area.{held}</p>"
     )
 
 
@@ -1533,7 +1543,7 @@ function fitScale(e) {
   if (!e.places.length) return 1;
   const la = e.places.map(p => p.lat), lo = e.places.map(p => p.lon);
   const sp = Math.max(Math.max(...la) - Math.min(...la), (Math.max(...lo) - Math.min(...lo)) * Math.cos(e.lat * rad), .05);
-  return Math.max(1, Math.min(40, 70 / (4.2 * sp)));
+  return Math.max(1, Math.min(3, 70 / (4.2 * sp)));   // capped: the land outlines are coarse, so deeper zoom shows only a flat colour
 }
 function pick(v) {
   const ta = document.querySelector('#fv-pick textarea, #fv-pick input'); if (!ta) return;
@@ -2587,6 +2597,6 @@ if __name__ == "__main__":
     }
     if "css" in inspect.signature(gr.Blocks.__init__).parameters:
         demo.theme, demo.css = kw["theme"], kw["css"]
-        demo.launch(share=True)
+        demo.launch()
     else:
-        demo.launch(**kw, share=True)
+        demo.launch(**kw)
