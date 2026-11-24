@@ -18,6 +18,13 @@ Open a PR touching `common/` or the schema, tag all five members, merge only wit
 - `valid_fraction` is the share of the cell with real imagery. Below 0.5 the cell has no usable imagery, and the checker must return `not_verifiable` for any claim about it.
 - Label evidence counts buildings from the xBD label polygons (exact, each building once, by centroid). Predicted evidence counts buildings from the model's mask, so its counts are approximate and can merge touching buildings.
 
+## Checker rules (added 19 Nov, member 1)
+Checker v2. Shares of whole buildings are k/n, so with n buildings some quantity words cannot occur: `few` needs at least 11 buildings, `some` at least 4, `many` at least 2. `none` and `most` are always possible. A claim whose quantity word cannot occur at the cell's building count (usable cells only) is `not_verifiable`, never `contradicted` (`reachable` in `src/floodsitrep/nlp/checker.py`).
+
+- Supported verdicts are the same in v1 and v2. Only some contradicted verdicts become not verifiable.
+- v2 was added after Gate 2 and after the single-annotator human-check dry run. Results should state which version scored them, and report v1 as well where claims were scored before 19 Nov.
+- Effect on the 50-tile Qwen3-VL-4B run: 112 claims, v1 4 supported / 92 contradicted / 16 not verifiable, v2 4 / 22 / 86.
+
 ## Event split (added 15 Nov, member 1)
 Tiles are split by whole event, set in `src/floodsitrep/data/splits.py` and written to
 `tiles.csv` (column `role`): train = hurricane-harvey, hurricane-matthew, midwest-flooding;

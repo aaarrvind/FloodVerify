@@ -1,2 +1,3 @@
 captioner: Qwen/Qwen2.5-VL-3B-Instruct
 quantifier_bins: {few: 0.10, some: 0.30, many: 0.60}
+checker_version: 2        # 19 Nov: quantity words unreachable at a cell's building count are not_verifiable (few needs 11+ buildings, some 4+, many 2+); see docs/CONTRACT.md
