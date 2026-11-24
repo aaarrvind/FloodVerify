@@ -82,30 +82,6 @@ def render_images(xbd_root, manifest, tile_ids, out_dir):
     print(f"{done} tiles rendered to {out_dir}")
 
 
-def export_locations(xbd_root, manifest, tile_ids, out_path):
-    """{tile_id: [lat, lon]}: the mean position of the labelled buildings in each tile's source image.
-    Only used to place a dot on the globe, so a rough centre is enough."""
-    from floodsitrep.data.labels_to_evidence import parse_wkt
-    from floodsitrep.data.tiling import read_manifest, source_paths, tile_name
-
-    rows = {tile_name(r): r for r in read_manifest(manifest)}
-    locs = {}
-    for tid in tile_ids:
-        row = rows.get(tid)
-        if row is None:
-            continue
-        lab = source_paths(xbd_root, row)["label"]
-        if not lab.exists():
-            continue
-        pts = []
-        for feat in json.loads(lab.read_text())["features"].get("lng_lat", []):
-            pts += parse_wkt(feat["wkt"])
-        if pts:
-            locs[tid] = [round(sum(y for _, y in pts) / len(pts), 4), round(sum(x for x, _ in pts) / len(pts), 4)]
-    Path(out_path).write_text(json.dumps(locs, indent=1))
-    print(f"{len(locs)} tile locations written to {out_path}")
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--captions", required=True)
@@ -143,7 +119,6 @@ def main():
     (out / "captions.json").write_text(json.dumps(caps, ensure_ascii=False, indent=1))
     if a.xbd_root and a.manifest:
         render_images(a.xbd_root, a.manifest, list(caps), out / "images")
-        export_locations(a.xbd_root, a.manifest, list(caps), out / "locations.json")
     if a.tweet_stats:
         shutil.copy(a.tweet_stats, out / "tweet_stats.json")
     if a.tweet_examples:
