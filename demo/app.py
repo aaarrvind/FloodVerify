@@ -782,7 +782,9 @@ def sitrep_html(tile_id, evidence, claims):
             "statements, so no advice is given.</p>"
         )
     elif ok and adv:
-        advice = f"<h3>What residents should do</h3><pre class='adv'>{esc(adv)}</pre>"
+        advice = advice_panel(adv, "en", "What residents should do") or (
+            f"<h3>What residents should do</h3><pre class='adv'>{esc(adv)}</pre>"
+        )
     elif ok:
         advice = (
             f"<h3>What residents should do</h3><p class='sr-empty'>Advice is not switched on in this version of the demo. "
@@ -1013,9 +1015,69 @@ def advisory(tile_id, lang, confirmed=1):
     return adv or ADVICE_NONE[lang]
 
 
+_ADV_SRC = re.compile(r"\s*\[([A-Za-z]+)-([A-Za-z0-9]+)-(?:en|ar)\]\s*$")
+_ADV_SPLIT = re.compile(r"(?<=[.!?\u061f])\s+")
+_ADV_CELL = re.compile(r"^(r\dc\d):\s*(.*)$")
+
+
+def parse_advisory(text):
+    """Split the stored advisory text into (situation lines, advice items). Both are empty for a plain message."""
+    situation, items, mode = [], [], None
+    for raw in str(text).splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line == "SITUATION:":
+            mode = "s"
+        elif line == "ADVICE:":
+            mode = "a"
+        elif mode == "s":
+            situation.append(line)
+        elif mode == "a" and line.startswith("- "):
+            items.append(line[2:].strip())
+    return situation, items
+
+
+def _advice_item(raw):
+    """One guidance passage: its first sentence is the instruction, the rest is detail, the tag is its source."""
+    src = ""
+    m = _ADV_SRC.search(raw)
+    if m:
+        src, raw = f"{m.group(1)} {m.group(2)}", raw[: m.start()]
+    parts = _ADV_SPLIT.split(raw.strip(), maxsplit=1)
+    rest = f'<p class="adv-rest">{esc(parts[1])}</p>' if len(parts) == 2 else ""
+    tag = f'<span class="adv-src" title="Guidance passage {esc(src)}">{esc(src)}</span>' if src else ""
+    return f'<li><div><p class="adv-head">{esc(parts[0])}</p>{rest}</div>{tag}</li>'
+
+
+def advice_panel(text, lang, title, with_basis=False, extra_cls=""):
+    """The advice as a panel: a title bar, one entry per guidance passage, the passage ID as a small tag.
+    Returns None when the text is a plain message (advice off, no guidance), so callers keep their own wording."""
+    situation, items = parse_advisory(text)
+    if not items:
+        return None
+    d = "rtl" if lang == "ar" else "ltr"
+    basis = ""
+    if with_basis and situation:
+        rows = []
+        for line in situation:
+            m = _ADV_CELL.match(line)
+            rows.append(f"<li><b>{esc(NAMES.get(m.group(1), m.group(1)))}</b> {esc(m.group(2))}</li>" if m else f"<li>{esc(line)}</li>")
+        basis = f'<div class="adv-basis" dir="ltr" lang="en"><b>Written from</b><ul>{"".join(rows)}</ul></div>'
+    n = len(items)
+    return (
+        f'<section class="advisory {extra_cls}" dir="{d}" lang="{lang}">'
+        f'<header class="adv-bar"><h3>{esc(title)}</h3><span dir="ltr" lang="en">{n} guidance passage{"s" if n != 1 else ""}</span></header>'
+        f'{basis}<ul class="adv-list">{"".join(_advice_item(i) for i in items)}</ul></section>'
+    )
+
+
 def advice_box(text, lang):
-    """The advice as a box that grows with its text: nothing is clipped or hidden behind a scroll bar."""
-    title, d = ("English", "ltr") if lang == "en" else ("العربية", "rtl")
+    """The advice for the tab: a panel when the text has guidance, otherwise the plain message in a box."""
+    title, d = ("English", "ltr") if lang == "en" else ("\u0627\u0644\u0639\u0631\u0628\u064a\u0629", "rtl")
+    panel = advice_panel(text, lang, title, with_basis=True, extra_cls="advbox")
+    if panel:
+        return panel
     return (
         f'<section class="advbox" dir="{d}" lang="{lang}" aria-label="{title}"><h3>{title}</h3>'
         f'<div class="advtext">{esc(text)}</div></section>'
@@ -2214,6 +2276,23 @@ footer{display:none!important}
 .advbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px 16px;height:auto}
 .advbox h3{margin:0 0 .5rem;font-size:.95rem;color:var(--muted)}
 .advtext{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:.98rem;color:var(--ink);max-height:none;overflow:visible}
+.advisory{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;height:auto}
+.advisory.advbox{padding:0}
+.advisory .adv-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:.2rem 1rem;padding:.7rem 1rem;background:var(--accent);color:var(--on-accent)}
+.advisory .adv-bar h3{margin:0;font-family:'Fraunces',Georgia,serif;font-size:1.15rem;font-weight:700;color:inherit}
+.advisory .adv-bar span{font-size:.85rem;color:inherit}
+.advisory .adv-basis{padding:.65rem 1rem;background:var(--paper);border-bottom:1px solid var(--line);font-size:.9rem;color:var(--ink2)}
+.advisory .adv-basis ul{list-style:none;margin:.25rem 0 0;padding:0;display:flex;flex-direction:column;gap:.1rem}
+.advisory .adv-basis b{color:var(--ink)}
+.advisory .adv-list{list-style:none;margin:0;padding:.35rem 1rem .5rem;display:flex;flex-direction:column}
+.advisory .adv-list li{display:flex;justify-content:space-between;align-items:flex-start;gap:.9rem;padding:.75rem 0;border-bottom:1px solid var(--line)}
+.advisory .adv-list li:last-child{border-bottom:0}
+.advisory .adv-list li>div{border-inline-start:3px solid var(--accent);padding-inline-start:.8rem;min-width:0}
+.advisory .adv-head{margin:0;font-family:'Fraunces',Georgia,serif;font-size:1.08rem;font-weight:600;line-height:1.3;color:var(--ink)}
+.advisory .adv-rest{margin:.3rem 0 0;font-size:.95rem;line-height:1.55;color:var(--ink2)}
+.advisory .adv-src{flex:none;margin-top:.15rem;padding:.05rem .55rem;border:1px solid var(--line);border-radius:999px;font-size:.78rem;color:var(--muted);white-space:nowrap;direction:ltr;unicode-bidi:isolate}
+.advisory[dir=rtl] .adv-head,.advisory[dir=rtl] .adv-bar h3{font-family:'Inter',system-ui,sans-serif;font-weight:650}
+@media (max-width:520px){.advisory .adv-list li{flex-direction:column;gap:.4rem}}
 #fv-adv-en,#fv-adv-ar{height:auto!important;max-height:none!important;overflow:visible!important}
 .sr-sum{margin:.9rem 0 .2rem;font-size:1.02rem;color:var(--ink);line-height:1.5}
 .topics{list-style:none;margin:.3rem 0 0;padding:0;display:grid;gap:.25rem}
@@ -2597,6 +2676,6 @@ if __name__ == "__main__":
     }
     if "css" in inspect.signature(gr.Blocks.__init__).parameters:
         demo.theme, demo.css = kw["theme"], kw["css"]
-        demo.launch()
+        demo.launch(share=True)
     else:
-        demo.launch(**kw)
+        demo.launch(**kw, share=True)
