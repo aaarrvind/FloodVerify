@@ -11,13 +11,16 @@ import re
 from floodsitrep.nlp.schema import Claim
 
 CELL_LINE = re.compile(r"^\s*(r[0-2]c[0-2])\s*:\s*(.+?)\s*$", re.IGNORECASE)
-QUANTITY_CLASS = re.compile(r"\b(none|few|some|many|most)\b[^.,;]*?\b(minor|major|destroyed)\b")
+TILE_PREFIX = re.compile(r"^\s*(?:image|tile|whole image)\s*:\s*(.+?)\s*$", re.IGNORECASE)
+WHOLE_PHRASE = re.compile(r"\b(?:in|across|of) the (?:whole|entire) (?:image|tile)\b", re.IGNORECASE)
+QUANTITY_CLASS = re.compile(r"\b(none|few|some|many|most)\b[^.,;]*?\b(minor|major|destroyed|damaged)\b")
 
 
 def parse_line(line: str) -> tuple[str, list[tuple[str, str]]]:
     """One caption line (without the cell id) -> (kind, [(quantity, damage_class), ...]).
 
-    kind is 'no_buildings', 'not_visible' or 'claims'. 'no damage' becomes (none, damaged).
+    kind is 'no_buildings', 'not_visible' or 'claims'. 'no damage' becomes (none, damaged), and so does
+    "few of the buildings are damaged" with its own quantity: (few, damaged) means any damage.
     A line with two clauses ("few ... minor damage and some show major damage") gives two pairs.
     """
     low = line.lower().strip()
@@ -47,6 +50,23 @@ def extract_claims(report_text: str) -> list[Claim]:
         cell, line = m.group(1).lower(), m.group(2)
         _, pairs = parse_line(line)
         claims += [Claim(text=line, cell=cell, quantity=q, damage_class=c) for q, c in pairs]
+    return claims
+
+
+def extract_tile_claims(report_text: str) -> list[Claim]:
+    """Whole-image claims (cell=None): lines that start 'image:', 'tile:' or 'whole image:', or that say
+    'in the whole image' / 'across the entire tile', for example 'most of the buildings in the whole image are damaged.'
+    Cell lines are left to extract_claims. Kept separate so callers that expect a cell on every claim are unaffected."""
+    claims = []
+    for raw in report_text.splitlines():
+        if CELL_LINE.match(raw):
+            continue
+        m = TILE_PREFIX.match(raw)
+        line = m.group(1) if m else (raw.strip() if WHOLE_PHRASE.search(raw) else None)
+        if line is None:
+            continue
+        _, pairs = parse_line(line)
+        claims += [Claim(text=line, cell=None, quantity=q, damage_class=c) for q, c in pairs]
     return claims
 
 

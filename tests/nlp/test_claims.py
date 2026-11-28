@@ -4,7 +4,12 @@ from pathlib import Path
 import pytest
 
 from floodsitrep.nlp.checker import bin_of, class_fraction, verify
-from floodsitrep.nlp.claims import extract_claims, parse_line, report_from_cells
+from floodsitrep.nlp.claims import (
+    extract_claims,
+    extract_tile_claims,
+    parse_line,
+    report_from_cells,
+)
 from floodsitrep.pipeline.run import run_tile
 
 
@@ -19,6 +24,13 @@ def test_parse_line_no_damage_forms():
     assert parse_line("no damage.") == ("claims", [("none", "damaged")])
     assert parse_line("none of the buildings show any damage.") == ("claims", [("none", "damaged")])
     assert parse_line("none of the buildings show major damage.") == ("claims", [("none", "major")])
+
+
+def test_parse_line_any_damage_with_a_quantity():
+    assert parse_line("most of the buildings are damaged.") == ("claims", [("most", "damaged")])
+    assert parse_line("few of the buildings in this area are damaged") == ("claims", [("few", "damaged")])
+    assert parse_line("none of the buildings are damaged.") == ("claims", [("none", "damaged")])
+    assert parse_line("most of the buildings are undamaged.") == ("claims", [])  # 'undamaged' is not 'damaged'
 
 
 def test_parse_line_two_clauses():
@@ -122,3 +134,30 @@ def test_pipeline_now_attaches_claims():
     evidence = json.loads(f.read_text())
     result = run_tile(f.stem, report_text=_perfect_report(evidence))
     assert result["claims"], "run_tile should have called nlp.checker.verify"
+
+
+def test_extract_tile_claims_whole_image_forms():
+    text = (
+        "none of the buildings in the whole image are damaged\n"
+        "Most of the buildings across the entire tile are damaged.\n"
+        "image: few of the buildings show major damage.\n"
+        "r0c1: few of the buildings show minor damage.\n"  # a cell line stays with extract_claims
+        "the area looks flooded\n"
+        "no buildings in the whole image."
+    )
+    got = [(c.cell, c.quantity, c.damage_class) for c in extract_tile_claims(text)]
+    assert got == [(None, "none", "damaged"), (None, "most", "damaged"), (None, "few", "major")]
+    assert [c.cell for c in extract_claims(text)] == ["r0c1"]  # extract_claims is unchanged: cell lines only
+
+
+def test_verify_tile_level_is_opt_in():
+    ev = {"tile_id": "t", "source": "labels", "gsd_m": 0.5, "grid": "3x3", "cells": [
+        {"cell": "r0c0", "buildings": 10, "confidence": 1.0, "valid_fraction": 1.0,
+         "class_fraction": {"none": 0.0, "minor": 0.0, "major": 1.0, "destroyed": 0.0}},
+        {"cell": "r0c1", "buildings": 10, "confidence": 1.0, "valid_fraction": 1.0,
+         "class_fraction": {"none": 1.0, "minor": 0.0, "major": 0.0, "destroyed": 0.0}}]}
+    text = "most of the buildings in the whole image are damaged."
+    assert verify(text, ev) == []
+    got = verify(text, ev, tile_level=True)
+    assert [(c["cell"], c["verdict"]) for c in got] == [(None, "contradicted")]  # 50% damaged is 'many', not 'most'
+    assert verify("many of the buildings in the whole image are damaged.", ev, tile_level=True)[0]["verdict"] == "supported"
