@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, replace
 
 from floodsitrep.common.interfaces import CLASSES
-from floodsitrep.nlp.claims import extract_claims
+from floodsitrep.nlp.claims import extract_claims, extract_tile_claims
 from floodsitrep.nlp.schema import Claim
 
 MIN_VALID = 0.5  # cells with less real imagery than this cannot be verified
@@ -80,6 +80,12 @@ def verify_claims(claims: list[Claim], evidence: dict) -> list[Claim]:
     return [replace(c, verdict=check_claim(c, evidence)) for c in claims]
 
 
-def verify(report_text: str, evidence: dict) -> list[dict]:
-    """Contract entry point: report text + evidence -> list of claim dicts with a verdict."""
-    return [asdict(c) for c in verify_claims(extract_claims(report_text), evidence)]
+def verify(report_text: str, evidence: dict, tile_level: bool = False) -> list[dict]:
+    """Contract entry point: report text + evidence -> list of claim dicts with a verdict.
+
+    With tile_level=True, whole-image claims (cell=None) are checked too. They are off by default because
+    callers such as the demo expect a cell on every claim."""
+    claims = extract_claims(report_text)
+    if tile_level:
+        claims += extract_tile_claims(report_text)
+    return [asdict(c) for c in verify_claims(claims, evidence)]
