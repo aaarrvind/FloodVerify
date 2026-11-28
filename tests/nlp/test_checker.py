@@ -1,7 +1,16 @@
 import json
 from pathlib import Path
 
-from floodsitrep.nlp.checker import bin_of, check_claim, class_fraction, reachable
+import pytest
+
+from floodsitrep.nlp.checker import (
+    bin_of,
+    check_claim,
+    class_fraction,
+    nearest_reachable,
+    reachable,
+    verify_claims,
+)
 from floodsitrep.nlp.schema import Claim
 
 SAMPLES = Path(__file__).parents[2] / "evidence" / "samples"
@@ -93,3 +102,40 @@ def test_few_is_checkable_with_enough_buildings():
     ev = _evidence(_cell("r0c0", 11, none=10 / 11, minor=1 / 11))
     assert check_claim(_claim("r0c0", "few", "minor"), ev) == "supported"
     assert check_claim(_claim("r0c0", "most", "minor"), ev) == "contradicted"
+
+
+def test_nearest_reachable_maps_a_claim_to_the_closest_reachable_word():
+    assert nearest_reachable("most", 3) == ("most",)
+    assert nearest_reachable("none", 1) == ("none",)
+    assert nearest_reachable("some", 3) == ("many",)
+    assert nearest_reachable("few", 3) == ("many",)
+    assert nearest_reachable("few", 1) == ("most",)
+    assert nearest_reachable("few", 5) == ("some",)
+
+
+def test_unreachable_nearest_judges_against_the_closest_reachable_word():
+    one_of_three = _evidence(_cell("r0c0", 3, none=2 / 3, minor=1 / 3))  # 33% is "many"
+    some = _claim("r0c0", "some", "minor")
+    assert check_claim(some, one_of_three) == "not_verifiable"
+    assert check_claim(some, one_of_three, unreachable="nearest") == "supported"
+    clean = _evidence(_cell("r0c0", 3, none=1.0))
+    assert check_claim(some, clean, unreachable="nearest") == "contradicted"
+
+
+def test_unreachable_nearest_leaves_reachable_claims_alone():
+    for total in range(1, 16):
+        for hit in range(total + 1):
+            ev = _evidence(_cell("r0c0", total, none=(total - hit) / total, minor=hit / total))
+            for quantity in ("none", "few", "some", "many", "most"):
+                if reachable(quantity, total):
+                    claim = _claim("r0c0", quantity, "minor")
+                    assert check_claim(claim, ev, "nearest") == check_claim(claim, ev)
+
+
+def test_unreachable_mode_must_be_known_and_reaches_verify_claims():
+    ev = _evidence(_cell("r0c0", 3, none=2 / 3, minor=1 / 3))
+    claim = _claim("r0c0", "some", "minor")
+    with pytest.raises(ValueError):
+        check_claim(claim, ev, unreachable="guess")
+    assert verify_claims([claim], ev)[0].verdict == "not_verifiable"
+    assert verify_claims([claim], ev, unreachable="nearest")[0].verdict == "supported"
